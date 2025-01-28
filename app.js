@@ -48,6 +48,10 @@ const categoryController = require('./controller/categoryController');
 const cartController = require('./controller/cartController');
 const orderController = require('./controller/orderController');
 const paypalController = require('./controller/paypalController.js');
+const invoiceController = require('./controller/invoiceController');
+
+app.get('/invoice/:orderId', invoiceController.getInvoice);
+
 
 
 // Import middleware
@@ -97,6 +101,9 @@ app.post('/updateCartProduct/:id', cartController.updateCartProduct);
 
 //Order
 app.get('/checkout', orderController.getCheckOut)
+
+//Invoice 
+app.get('/invoice/:orderId', invoiceController.getInvoice);
 
 //Paypal
 app.use(express.json());

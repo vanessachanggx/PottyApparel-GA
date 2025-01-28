@@ -1,6 +1,7 @@
 const db = require('../db'); // Ensure db.js exports the correct MySQL connection
 
 exports.getCheckOut = (req, res) => {
+    const { paymentMethod, orderId, transactionId } = req.params;
     if (!req.session.user) {
         req.flash('error', 'You must be logged in to view your account.');
         return res.redirect('/login');
@@ -12,6 +13,7 @@ exports.getCheckOut = (req, res) => {
     const sql = `
         SELECT ProductId, Name, Image, Price, Size, Quantity 
         FROM cart
+        WHERE UserID = ?
     `;
 
     db.query(sql, [userId], (error, results) => {
@@ -25,10 +27,23 @@ exports.getCheckOut = (req, res) => {
 
             let totalAmount = results.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
 
-            res.render('checkout', { cart: results, totalAmount: totalAmount, msg: "" });
+            res.render('checkout', { 
+                cart: results, 
+                totalAmount: totalAmount, 
+                msg: "",
+                paymentMethod: paymentMethod,
+                orderId: orderId,
+                transactionId: transactionId
+            });
         } else {
-            res.render('checkout', { cart: [], totalAmount: 0, msg: "No products in cart" });
+            res.render('checkout', { 
+                cart: [], 
+                totalAmount: 0, 
+                msg: "No products in cart",
+                paymentMethod: paymentMethod,
+                orderId: orderId,
+                transactionId: transactionId
+            });
         }
     });
 };
-

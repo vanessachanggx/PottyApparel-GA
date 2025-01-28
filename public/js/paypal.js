@@ -7,13 +7,12 @@ window.paypal
       label: "paypal",
     },
 
-    async createOrder() {
-      let cartProducts = document.getElementById("cartProducts").value;
-
-      cartProducts = JSON.parse(cartProducts)
-      console.log("Cart Products: ")
-      console.log(cartProducts)
+    createOrder: async function() {
       try {
+        let cartProducts = document.getElementById("cartProducts").value;
+        cartProducts = JSON.parse(cartProducts);
+        console.log("Cart Products:", cartProducts);
+
         const response = await fetch("/api/orders", {
           method: "POST",
           headers: {
@@ -24,24 +23,25 @@ window.paypal
           }),
         });
 
-        const orderData = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        console.log("Order Data: " + orderData);
+        const orderData = await response.json();
+        console.log("Order Data:", orderData);
+
         if (orderData.id) {
           return orderData.id;
+        } else {
+          throw new Error("Order ID not received");
         }
-        const errorDetail = orderData?.details?.[0];
-        const errorMessage = errorDetail
-          ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-          : JSON.stringify(orderData);
-
-        throw new Error(errorMessage);
       } catch (error) {
-        console.error(error);
+        console.error("Error in createOrder:", error);
+        alert("There was an error creating your order. Please try again.");
       }
     },
 
-    async onApprove(data, actions) {
+    onApprove: async function(data, actions) {
       try {
         const response = await fetch(`/api/orders/${data.orderID}/capture`, {
           method: "POST",
@@ -50,26 +50,35 @@ window.paypal
           },
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const orderData = await response.json();
+        console.log("Capture Order Data:", orderData);
 
         const errorDetail = orderData?.details?.[0];
-        console.log("Error detail: " + errorDetail)
         if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
           return actions.restart();
         } else if (errorDetail) {
           throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
         } else if (!orderData.purchase_units) {
-          throw new Error(JSON.stringify(orderData));
+          throw new Error("Invalid order data received");
         } else {
           const transaction =
             orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
             orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
 
-          window.location.href = `/checkout/Paypal/${orderData.id}/${transaction.id}`;
+          if (transaction) {
+            window.location.href = `/checkout/Paypal/${orderData.id}/${transaction.id}`;
+          } else {
+            throw new Error("Transaction details not found");
+          }
         }
       } catch (error) {
-        console.log("Error: " + `${error}`)
+        console.error("Error in onApprove:", error);
+        alert("There was an error processing your payment. Please try again.");
       }
     },
   })
-  .render("#paypal-button-container"); 
+  .render("#paypal-button-container");

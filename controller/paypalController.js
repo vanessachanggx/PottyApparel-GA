@@ -168,3 +168,16 @@ exports.captureOrderHandler = async (req, res) => {
         res.status(500).json({ error: "Failed to capture order." });
     }
 };
+
+exports.captureOrderHandler = async (req, res) => {
+    const { orderID } = req.params;
+    try {
+        const captureData = await capturePayment(orderID);
+        // ... existing code ...
+
+        // After successful payment capture and database update
+        res.redirect(`/invoice/${dbOrderId}`);
+    } catch (error) {
+        // ... error handling ...
+    }
+};

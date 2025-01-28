@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+</head>
+<body>
+    <h1>Invoice</h1>
+    <p><strong>Order ID:</strong> <%= invoice.orderId %></p>
+    <p><strong>Order Date:</strong> <%= invoice.orderDate.toLocaleString() %></p>
+    <p><strong>Payment Method:</strong> <%= invoice.paymentMethod %></p>
+
+    <h2>Items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% let total = 0; %>
+            <% invoice.items.forEach(item => { %>
+                <tr>
+                    <td><%= item.name %></td>
+                    <td>$<%= item.price.toFixed(2) %></td>
+                    <td><%= item.quantity %></td>
+                    <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+                </tr>
+                <% total += item.price * item.quantity; %>
+            <% }); %>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total</strong></td>
+                <td><strong>$<%= total.toFixed(2) %></strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
